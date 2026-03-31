@@ -24,10 +24,13 @@ jobs:
         aws s3 sync ./frontend s3://${{ secrets.S3_BUCKET }} --delete
 
     - name: Invalidate CloudFront cache
-      if: env.CLOUDFRONT_DIST_ID != ''
       env:
         CLOUDFRONT_DIST_ID: ${{ secrets.CLOUDFRONT_DIST_ID }}
       run: |
-        aws cloudfront create-invalidation \
-          --distribution-id $CLOUDFRONT_DIST_ID \
-          --paths "/*"s
+        if [ -n "$CLOUDFRONT_DIST_ID" ]; then
+          aws cloudfront create-invalidation \
+            --distribution-id $CLOUDFRONT_DIST_ID \
+            --paths "/*"
+        else
+          echo "No CloudFront distribution ID set, skipping."
+        fi
